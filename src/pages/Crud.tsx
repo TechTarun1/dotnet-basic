@@ -5,36 +5,9 @@ import Modal from 'react-bootstrap/Modal';
 import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
 import { Container } from "react-bootstrap";
+import axios from "axios";
 
 const Crud = () => {
-
-    const empData: any = [
-        {
-            id: 1,
-            name: 'Tarun',
-            age: 22,
-        },
-        {
-            id: 2,
-            name: 'Devi',
-            age: 23,
-        },
-        {
-            id: 3,
-            name: 'Mrudula',
-            age: 22,
-        },
-        {
-            id: 4,
-            name: 'Dinesh',
-            age: 28,
-        },
-        {
-            id: 5,
-            name: 'Mythili',
-            age: 25,
-        }
-    ]
 
     const [data, setData] = useState<any>([]);
     const [show, setShow] = useState<boolean>(false);
@@ -43,29 +16,51 @@ const Crud = () => {
 
     const [editName, setEditName] = useState<string>('');
     const [editAge, setEditAge] = useState<any>();
+    const [editId, setEditId] = useState<number>(0);
+
+    const url = 'https://localhost:7122/api/Employee'
 
     useEffect(() => {
-        setData(empData);
+        getEmployees();
     }, [])
 
-    const handleEit = (item: any) => {
+    const getEmployees = () => {
+        axios.get(`${url}/GetEmployees`, {
+            headers: {
+                'Access-Control-Allow-Origin': '*',
+            }
+        }).then((response) => {
+            setData(response?.data);
+        }).catch((err: any) => {
+            console.log(JSON.stringify(err))
+        })
+    }
+
+    const handleEdit = (item: any) => {
         handleShow(item);
     }
 
     const handleUpdate = () => {
-        alert(editAge + editName)
+        axios.put(`${url}/${editId}`, { eName: editName, age: editAge }).then((res) => {
+            alert('success');
+            getEmployees();
+        })
     }
 
     const handleDelete = (id: number) => {
         if (window.confirm("Are you sure you want to delete this employee") == true) {
-            alert(id);
+            axios.delete(`${url}/${id}`).then((res) => {
+                alert('successfully deleted.');
+                getEmployees();
+            })
         }
     }
 
     const handleShow = (item: any) => {
         setShow(true);
-        setEditName(item.name);
+        setEditName(item.eName);
         setEditAge(item.age);
+        setEditId(item.id)
     }
 
     const handleClose = () => {
@@ -73,6 +68,10 @@ const Crud = () => {
     }
 
     const addEmployee = () => {
+        axios.post(`${url}/AddEmployee`, { eName: name, age: age }).then((res) => {
+            alert("success");
+            getEmployees();
+        })
         setName('');
         setAge('');
     }
@@ -106,13 +105,13 @@ const Crud = () => {
                 <tbody>
                     {data && data.map((item: any, index: number) => {
                         return (
-                            <tr key={index} style={{cursor:"pointer"}}>
+                            <tr key={index} style={{ cursor: "pointer" }}>
                                 <td>{index + 1}</td>
                                 <td>{item.id}</td>
-                                <td>{item.name}</td>
+                                <td>{item.eName}</td>
                                 <td>{item.age}</td>
                                 <td colSpan={2}>
-                                    <button className="btn btn-primary" onClick={() => handleEit(item)}>Edit</button>&nbsp;&nbsp;
+                                    <button className="btn btn-primary" onClick={() => handleEdit(item)}>Edit</button>&nbsp;&nbsp;
                                     <button className="btn btn-danger" onClick={() => handleDelete(item.id)}>Delete</button>
                                 </td>
                             </tr>
